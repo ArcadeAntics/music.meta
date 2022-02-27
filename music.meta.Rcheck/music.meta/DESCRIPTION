@@ -1,0 +1,14 @@
+Package: music.meta
+Type: Package
+Title: Read Music Meta Information
+Version: 0.1.0
+Author: Andrew Simmons
+Maintainer: Andrew Simmons <akwsimmo@gmail.com>
+Description: Rename and organize music based on its meta
+    information
+License: MIT + file LICENSE
+SystemRequirements: ExifTool
+Encoding: UTF-8
+NeedsCompilation: yes
+Packaged: 2022-02-27 07:35:47 UTC; andre
+Built: R 4.1.2; ; 2022-02-27 07:35:59 UTC; windows

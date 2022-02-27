@@ -1,0 +1,214 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "music.meta"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> options(pager = "console")
+> library('music.meta')
+ALLUSERSPROFILE         C:\ProgramData
+APPDATA                 C:\Users\andre\AppData\Roaming
+BIBINPUTS               .;;C:/PROGRA~1/R/R-4.1.2/share/texmf/bibtex/bib;
+BINDIR                  bin/x64
+BSTINPUTS               .;;C:/PROGRA~1/R/R-4.1.2/share/texmf/bibtex/bst;
+CLICOLOR_FORCE          1
+COMPUTERNAME            DESKTOP-VR312SR
+CONDA_BAT               C:\Users\andre\AppData\Local\r-miniconda\condabin\conda.bat
+CONDA_EXE               C:\Users\andre\AppData\Local\r-miniconda\Scripts\conda.exe
+CONDA_SHLVL             0
+ComSpec                 C:\WINDOWS\system32\cmd.exe
+CommonProgramFiles      C:\Program Files\Common Files
+CommonProgramFiles(x86)
+                        C:\Program Files (x86)\Common Files
+CommonProgramW6432      C:\Program Files\Common Files
+DISPLAY                 :0
+DriverData              C:\Windows\System32\Drivers\DriverData
+FPS_BROWSER_APP_PROFILE_STRING
+                        Internet Explorer
+FPS_BROWSER_USER_PROFILE_STRING
+                        Default
+GIT_ASKPASS             rpostback-askpass
+HOME                    C:\Users\andre\Documents
+HOMEDRIVE               C:
+HOMEPATH                \Users\andre
+LANGUAGE                en
+LC_COLLATE              C
+LOCALAPPDATA            C:\Users\andre\AppData\Local
+LOGONSERVER             \\DESKTOP-VR312SR
+MPLENGINE               tkAgg
+MSYS2_ENV_CONV_EXCL     R_ARCH
+NUMBER_OF_PROCESSORS    12
+OS                      Windows_NT
+OneDrive                C:\Users\andre\OneDrive
+OneDriveConsumer        C:\Users\andre\OneDrive
+PATH                    C:\Users\andre\AppData\Local\r-miniconda\condabin;C:\PROGRA~1\R\R-4.1.2\bin/x64;C:\Program
+                        Files\R\R-4.1.2\bin\x64;C:\Program Files
+                        (x86)\Common
+                        Files\Oracle\Java\javapath;C:\Program Files
+                        (x86)\Intel\Intel(R) Management Engine
+                        Components\iCLS\;C:\Program
+                        Files\Intel\Intel(R) Management Engine
+                        Components\iCLS\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program
+                        Files (x86)\NVIDIA
+                        Corporation\PhysX\Common;C:\Program Files
+                        (x86)\Intel\Intel(R) Management Engine
+                        Components\DAL;C:\Program Files\Intel\Intel(R)
+                        Management Engine Components\DAL;C:\Program
+                        Files (x86)\Intel\Intel(R) Management Engine
+                        Components\IPT;C:\Program Files\Intel\Intel(R)
+                        Management Engine Components\IPT;C:\Program
+                        Files\NVIDIA Corporation\NVIDIA
+                        NvDLISR;C:\Program
+                        Files\Intel\WiFi\bin\;C:\Program Files\Common
+                        Files\Intel\WirelessCommon\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\rtools40\usr\bin;C:\Program
+                        Files\Microsoft SQL Server\Client
+                        SDK\ODBC\170\Tools\Binn\;C:\Program Files
+                        (x86)\Microsoft SQL
+                        Server\150\Tools\Binn\;C:\Program
+                        Files\Microsoft SQL
+                        Server\150\Tools\Binn\;C:\Program
+                        Files\Microsoft SQL
+                        Server\150\DTS\Binn\;C:\Program
+                        Files\Git\cmd;C:\Users\andre\AppData\Local\Programs\Python\Python310\Scripts\;C:\Users\andre\AppData\Local\Programs\Python\Python310\;C:\Users\andre\anaconda3;C:\Users\andre\anaconda3\Library\mingw-w64\bin;C:\Users\andre\anaconda3\Library\usr\bin;C:\Users\andre\anaconda3\Library\bin;C:\Users\andre\anaconda3\Scripts;C:\Users\andre\AppData\Local\Programs\Python\Python38-32\Scripts\;C:\Users\andre\AppData\Local\Programs\Python\Python38-32\;C:\Users\andre\AppData\Local\Microsoft\WindowsApps;C:\Users\andre\AppData\Local\Programs\MiKTeX\miktex\bin\x64\;C:\Program
+                        Files\R\R-4.1.2\bin\x64;;C:/Program
+                        Files/RStudio/bin/postback
+PATHEXT                 .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+PROCESSOR_ARCHITECTURE
+                        AMD64
+PROCESSOR_IDENTIFIER    Intel64 Family 6 Model 158 Stepping 10,
+                        GenuineIntel
+PROCESSOR_LEVEL         6
+PROCESSOR_REVISION      9e0a
+PROMPT                  $P$G
+PSModulePath            C:\Program
+                        Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules;C:\Program
+                        Files (x86)\Microsoft SQL
+                        Server\150\Tools\PowerShell\Modules\
+PUBLIC                  C:\Users\Public
+ProgramData             C:\ProgramData
+ProgramFiles            C:\Program Files
+ProgramFiles(x86)       C:\Program Files (x86)
+ProgramW6432            C:\Program Files
+QT_D3DCREATE_MULTITHREADED
+                        1
+RMARKDOWN_MATHJAX_PATH
+                        C:/Program Files/RStudio/resources/mathjax-27
+RSTUDIO                 1
+RSTUDIO_CONSOLE_COLOR   256
+RSTUDIO_CONSOLE_WIDTH   120
+RSTUDIO_MSYS_SSH        C:/Program Files/RStudio/bin/msys-ssh-1000-18
+RSTUDIO_PANDOC          C:/Program Files/RStudio/bin/pandoc
+RSTUDIO_PROGRAM_MODE    desktop
+RSTUDIO_SESSION_PORT    27377
+RSTUDIO_USER_IDENTITY   andre
+RSTUDIO_WINUTILS        C:/Program Files/RStudio/bin/winutils
+RS_LOCAL_PEER           \\.\pipe\27377-rsession
+RS_RPOSTBACK_PATH       C:/Program Files/RStudio/bin/rpostback
+RS_SHARED_SECRET        63341846741
+RTOOLS40_HOME           C:\rtools40
+R_ARCH                  /x64
+R_BZIPCMD               bzip2
+R_CMD                   R CMD
+R_COMPILED_BY           gcc 8.3.0
+R_DOC_DIR               C:/PROGRA~1/R/R-4.1.2/doc
+R_ESSENTIALS_QUIET      FALSE
+R_ESSENTIALS_SH_PROMPT_TYPE
+                        bash
+R_ESSENTIALS_TOP_LEVEL
+                        TRUE
+R_GZIPCMD               gzip
+R_HOME                  C:/PROGRA~1/R/R-4.1.2
+R_INCLUDE_DIR           C:/PROGRA~1/R/R-4.1.2/include
+R_LIBS                  C:\Users\andre\Documents\music.meta\music.meta.Rcheck;C:\Users\andre\Documents\R\win-library\4.1
+R_LIBS_USER             C:/Users/andre/Documents/R/win-library/4.1
+R_OSTYPE                windows
+R_PAPERSIZE             a4
+R_PROFILE               ~/Rprofile.site
+R_RD4PDF                times,inconsolata,hyper
+R_SCRIPT_DEFAULT_PACKAGES
+                        NULL
+R_SHARE_DIR             C:/PROGRA~1/R/R-4.1.2/share
+R_THIS_PATH_COMMAND_PROMPT_OS_TYPE
+                        ubuntu
+R_THIS_PATH_SH_PROMPT_TYPE
+                        bash
+R_UNZIPCMD              unzip
+R_USER                  C:/Users/andre/Documents
+R_VERSION               4.1.2
+R_ZIPCMD                zip
+SED                     sed
+SESSIONNAME             Console
+SSH_ASKPASS             rpostback-askpass
+SystemDrive             C:
+SystemRoot              C:\WINDOWS
+TEMP                    C:\Users\andre\AppData\Local\Temp
+TERM                    xterm-256color
+TEXINPUTS               .;;C:/PROGRA~1/R/R-4.1.2/share/texmf/tex/latex;
+TMP                     C:\Users\andre\AppData\Local\Temp
+TMPDIR                  C:\Users\andre\AppData\Local\Temp
+USERDOMAIN              DESKTOP-VR312SR
+USERDOMAIN_ROAMINGPROFILE
+                        DESKTOP-VR312SR
+USERNAME                andre
+USERPROFILE             C:\Users\andre
+VBOX_MSI_INSTALL_PATH   C:\Program Files\Oracle\VirtualBox\
+ZES_ENABLE_SYSMAN       1
+_R_CHECK_INTERNALS2_    1
+_R_CHECK_LICENSE_       TRUE
+_R_CHECK_PACKAGE_NAME_
+                        music.meta
+_R_NS_LOAD_             music.meta
+_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_
+                        TRUE
+windir                  C:\WINDOWS
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("hello")
+> ### * hello
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: hello
+> ### Title: Hello, World!
+> ### Aliases: hello
+> 
+> ### ** Examples
+> 
+> hello()
+[1] "Hello, world!"
+> 
+> 
+> 
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  0.08 0.03 0.13 NA NA 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')
