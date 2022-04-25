@@ -1,4 +1,4 @@
-essentials:::Check_This(  # music.meta
+essentials:::check_this(  # music.meta
     build = TRUE,
 
     check = FALSE,

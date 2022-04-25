@@ -5,44 +5,47 @@
 
 MusicMetadata <- methods::setRefClass(
     Class  = "MusicMetadata",
-    fields = c(value = "data.frame"),
+    fields = c(
+        metadata = "data.frame",
+        directories = "data.frame"
+    ),
     methods = list(
 
 
 has.title = function ()
-.self$value$title != "",
+.self$metadata$title != "",
 
 
 has.artist = function ()
-.self$value$artist != "",
+.self$metadata$artist != "",
 
 
 has.genre = function ()
-.self$value$genre != "",
+.self$metadata$genre != "",
 
 
 has.album = function ()
-.self$value$album != "",
+.self$metadata$album != "",
 
 
 has.album.artist = function ()
-.self$value$album.artist != "",
+.self$metadata$album.artist != "",
 
 
 has.composer = function ()
-.self$value$composer != "",
+.self$metadata$composer != "",
 
 
 is.single = function ()
-.self$has.title() & .self$value$title == .self$value$album &
+.self$has.title() & .self$metadata$title == .self$metadata$album &
     .self$has.album.artist() &
-    sub("/.*", "", .self$value$album.artist) == sub("/.*", "", .self$value$artist) &
-    .self$value$track.number == 1L & .self$value$track.count == 1L &
-    .self$value$disk.number == 1L & .self$value$disk.count == 1L,
+    sub("/.*", "", .self$metadata$album.artist) == sub("/.*", "", .self$metadata$artist) &
+    .self$metadata$track.number == 1L & .self$metadata$track.count == 1L &
+    .self$metadata$disk.number == 1L & .self$metadata$disk.count == 1L,
 
 
 get.title = function ()
-fix.title(.self$value$title),
+fix.title(.self$metadata$title),
 
 
 as.filename = function (short = FALSE)
@@ -61,10 +64,10 @@ as.filename = function (short = FALSE)
             .self$has.title(),
             ifelse(
                 .self$has.composer(),
-                .self$value$composer,
+                .self$metadata$composer,
                 ifelse(
                     .self$has.artist(),
-                    .self$value$artist,
+                    .self$metadata$artist,
                     ""
                 )
             ),
@@ -144,6 +147,9 @@ validate.filename = function (original.artist.check = TRUE)
     }
 
 
+    x$char <- as.character(x$self, source = TRUE)
+
+
     for (i in seq_len(nrow(x))) {
         cat("For file:\n", x$char[[i]], sep = "")
         ans <- askYesNo2(paste0("Rename as ", dQuote(x$new[[i]]), "?"))
@@ -177,195 +183,185 @@ validate.filename = function (original.artist.check = TRUE)
 #         orig <- !.self$is.remix()
 #         blank <- !.self$has.title() | (orig & !.self$has.artist())
 #         if (any(i <- orig & !blank))
-#             val[i] <- paste0(gsub("/", ", ", .self$value$artist[i], fixed = TRUE), " - ")
+#             val[i] <- paste0(gsub("/", ", ", .self$metadata$artist[i], fixed = TRUE), " - ")
 #         if (any(i <- !blank))
-#             val[i] <- paste0(val[i], .self$value$title[i], essentials::ext(names(.self)[i]))
+#             val[i] <- paste0(val[i], .self$metadata$title[i], essentials::ext(names(.self)[i]))
 #         essentials::asWindowsbasename(val)
 #     }
 # },
 
 
-CheckInconsistencies = function (what, warn = TRUE)
+CheckInconsistencies = function (what = c("album", "artist", "date", "disk.count", "genre", "track.count"), warn = TRUE)
 {
-    what <- match.arg(what, c("artist", "date", "track.count", "disk.count"))
-    f <- switch (what,
-        artist = return(.self$CheckArtistInconsistencies(warn = warn)),
-        track.count = paste0(.self$value$album.artist, " - ", .self$value$album, " - Disk ", .self$value$disk.number, recycle0 = TRUE),
-                      paste0(.self$value$album.artist, " - ", .self$value$album                                     , recycle0 = TRUE)
-    )
-    i <- vapply(split(.self$value[[what]], f), function(xx) {
-        length(unique(xx))
-    }, FUN.VALUE = 0L) == 1L
-    i <- unsplit(i, f)
-    f[i] <- NA
-    x <- split(.self, f)
-    if (warn) {
-        if (length(x)) {
-            k <- vapply(x, function(xx) {
-                paste(dQuote(unique(xx$value[[what]])), collapse = ", ")
+    # .self <- metadata ; what <- c("album", "artist", "date", "disk.count", "genre", "track.count") ; warn <- TRUE ; stop("delete this later")
+    what <- unique(match.arg(what, several.ok = TRUE))
+    warn <- if (warn) TRUE else FALSE
+    if (length(.self) <= 0L) {
+        x <- structure(list(), names = character())
+        x <- structure(rep(list(x), length(what)), names = what)
+        if (warn)
+            invisible(x)
+        else x
+    }
+    x <- lapply(what, function(wwhat) {
+        x <- switch (wwhat, album = {
+            data.frame(
+                indexes = seq_along(.self),
+                values  = paste(.self$metadata$album.artist, .self$metadata$album, sep = " - ")
+            )
+        }, artist = {
+            artists1 <- strsplit(.self$metadata$artist      , "/", fixed = TRUE)
+            artists2 <- strsplit(.self$metadata$album.artist, "/", fixed = TRUE)
+            artists3 <- strsplit(.self$metadata$composer    , "/", fixed = TRUE)
+            data.frame(
+                indexes = c(
+                    rep(seq_along(.self), lengths(artists1)),
+                    rep(seq_along(.self), lengths(artists2)),
+                    rep(seq_along(.self), lengths(artists3))
+                ),
+                values  = c(
+                    unlist(artists1),
+                    unlist(artists2),
+                    unlist(artists3)
+                )
+            )
+        }, {
+            data.frame(
+                indexes = seq_along(.self),
+                values  = .self$metadata[[wwhat]]
+            )
+        })
+        f <- switch (wwhat, album = , artist = , genre = {
+            tmp <- tolower(x$values)
+            tmp2 <- !duplicated(tmp)
+            f <- factor(tmp, levels = tmp[tmp2], labels = x$values[tmp2])
+        }, track.count = {
+            paste0(.self$metadata$album.artist, " - ", .self$metadata$album, " - Disk ", .self$metadata$disk.number, recycle0 = TRUE)
+        }, {
+            paste0(.self$metadata$album.artist, " - ", .self$metadata$album                                        , recycle0 = TRUE)
+        })
+        x <- split(x, f)
+        x <- x[vapply(x, function(xx) {
+            length(unique(xx$values))
+        }, FUN.VALUE = 0L) != 1L]
+        # y <- lapply(x, function(xx) {
+        #     .self[unique(xx$indexes)]
+        # })
+        x
+    })
+    names(x) <- what
+    for (y in x) {
+        if (warn && length(y)) {
+            k <- vapply(y, function(yy) {
+                paste(dQuote(unique(yy$values)), collapse = ", ")
             }, FUN.VALUE = "")
             warning(
                 sprintf(
                     ngettext(
-                        length(x),
+                        length(y),
                         "found %d %s inconsistency",
                         "found %d %s inconsistencies"
                     ),
-                    length(x), what
+                    length(y), wwhat
                 ),
                 paste0("\n  in ", unstrip(dQuote(names(k))), " found: ", k))
         }
-        invisible(x)
     }
-    else x
-},
-
-
-CheckDateInconsistencies = function (warn = TRUE)
-{
-    .self$CheckInconsistencies(what = "date", warn = warn)
-},
-
-
-CheckTrackCountInconsistencies = function (warn = TRUE)
-{
-    .self$CheckInconsistencies(what = "track.count", warn = warn)
-},
-
-
-CheckDiskCountInconsistencies = function (warn = TRUE)
-{
-    .self$CheckInconsistencies(what = "disk.count", warn = warn)
-},
-
-
-CheckArtistInconsistencies = function (warn = TRUE)
-{
-    artists1 <- strsplit(.self$value$artist      , "/", fixed = TRUE)
-    artists2 <- strsplit(.self$value$album.artist, "/", fixed = TRUE)
-    x <- data.frame(
-        indexes = c(
-            rep(seq_along(.self), lengths(artists1)),
-            rep(seq_along(.self), lengths(artists2))),
-        artists = c(unlist(artists1), unlist(artists2))
-    )
-    # x <- x[!duplicated(x$artists), , drop = FALSE]
-    x <- split(x,
-        f = factor(
-            tolower(x$artists),
-            levels = unique(tolower(x$artists)),
-            labels = x$artists[!duplicated(tolower(x$artists))]
-        ))
-    x <- x[vapply(x, function(xx) length(unique(xx$artists)), FUN.VALUE = 0L) != 1L]
     y <- lapply(x, function(xx) {
-        .self[unique(xx$indexes)]
+        lapply(xx, function(xxx) {
+            .self[unique(xxx$indexes)]
+        })
     })
-    if (warn) {
-        if (length(x)) {
-            k <- vapply(x, function(xx) {
-                paste(dQuote(unique(xx$artists)), collapse = ", ")
-            }, FUN.VALUE = "")
-            warning(
-                sprintf(
-                    ngettext(
-                        length(x),
-                        "found %d artist inconsistency",
-                        "found %d artist inconsistencies"
-                    ),
-                    length(x)
-                ),
-                paste0("\n  for ", unstrip(dQuote(names(k))), ", found: ", k)
-            )
-        }
+    if (warn)
         invisible(y)
-    }
-    else y
-},
-
-
-CheckGenreInconsistencies = function (warn = TRUE)
-{
-    x <- data.frame(
-        indexes = seq_along(.self),
-        genres = .self$value$genre
-    )
-    x <- x[x$genres != "", , drop = FALSE]
-    x <- split(x, factor(
-        tolower(x$genres),
-        levels = unique(tolower(x$genres)),
-        labels = x$genres[!duplicated(tolower(x$genres))]
-    ))
-    x <- x[vapply(x, function(xx) length(unique(xx$genres)), FUN.VALUE = 0L) != 1L]
-    y <- lapply(x, function(xx) {
-        .self[unique(xx$indexes)]
-    })
-    if (warn) {
-        if (length(x)) {
-            k <- vapply(x, function(xx) {
-                paste(dQuote(unique(xx$genres)), collapse = ", ")
-            }, FUN.VALUE = "")
-            warning(
-                sprintf(
-                    ngettext(
-                        length(x),
-                        "found %d artist inconsistency",
-                        "found %d artist inconsistencies"
-                    ),
-                    length(x)
-                ),
-                paste0("\n  for ", unstrip(dQuote(names(k))), ", found: ", k)
-            )
-        }
-        invisible(y)
-    }
     else y
 },
 
 
 CheckAlbumInconsistencies = function (warn = TRUE)
 {
-    x <- data.frame(
-        indexes = seq_along(.self),
-        albums = paste(.self$value$album.artist, .self$value$album, sep = " - ")
-    )
-    x <- split(x, factor(
-        tolower(x$albums),
-        levels = unique(tolower(x$albums)),
-        labels = x$albums[!duplicated(tolower(x$albums))]
-    ))
-    x <- x[vapply(x, function(xx) length(unique(xx$albums)), FUN.VALUE = 0L) != 1L]
-    y <- lapply(x, function(xx) {
-        .self[unique(xx$indexes)]
-    })
-    if (warn) {
-        if (length(x)) {
-            k <- vapply(x, function(xx) {
-                paste(dQuote(unique(xx$albums)), collapse = ", ")
-            }, FUN.VALUE = "")
-            warning(
-                sprintf(
-                    ngettext(
-                        length(x),
-                        "found %d artist inconsistency",
-                        "found %d artist inconsistencies"
-                    ),
-                    length(x)
-                ),
-                paste0("\n  for ", unstrip(dQuote(names(k))), ", found: ", k)
-            )
-        }
-        invisible(y)
-    }
-    else y
+    .self$CheckInconsistencies("album", warn = warn)[[1L]]
+},
+
+
+CheckArtistInconsistencies = function (warn = TRUE)
+{
+    .self$CheckInconsistencies("artist", warn = warn)[[1L]]
+},
+
+
+CheckDateInconsistencies = function (warn = TRUE)
+{
+    .self$CheckInconsistencies("date", warn = warn)[[1L]]
+},
+
+
+CheckDiskCountInconsistencies = function (warn = TRUE)
+{
+    .self$CheckInconsistencies("disk.count", warn = warn)[[1L]]
+},
+
+
+CheckGenreInconsistencies = function (warn = TRUE)
+{
+    .self$CheckInconsistencies("genre", warn = warn)[[1L]]
+},
+
+
+CheckTrackCountInconsistencies = function (warn = TRUE)
+{
+    .self$CheckInconsistencies("track.count", warn = warn)[[1L]]
 },
 
 
 refresh = function ()
 {
-    need2refresh <- .self$value$mtime + 1 <= file.mtime(names(.self))
-    files2refresh <- names(.self)[need2refresh]
-    if (length(files2refresh))
-        .self$value[need2refresh, ] <- as.MusicMetadata(exiftool(path = files2refresh))$value
+    need2refresh <- .self$metadata$mtime + 1 <= file.mtime(names(.self))
+    need2remove <- is.na(need2refresh)
+    need2refresh <- !need2remove & need2refresh
+
+
+    if (any(need2refresh))
+        .self$metadata[need2refresh, ] <- read.MusicMetadata(names(.self)[need2refresh])$metadata
+
+
+    if (any(need2remove))
+        .self$metadata <- .self$metadata[!need2remove, , drop = FALSE]
+
+
+    mtime <- file.mtime(.self$directories$paths)
+    need2refresh <- .self$directories$mtime + 1 <= mtime
+    need2remove <- is.na(need2refresh)
+    need2refresh <- !need2remove & need2refresh
+
+
+    if (any(need2refresh)) {
+        paths <- .self$directories$paths[need2refresh]
+        paths <- essentials::list.files2(paths, "\\.(m4a|mp3)$", all.files = TRUE, full.names = TRUE, ignore.case = TRUE)
+        isfile <- !file.isdir(paths)
+        paths <- paths[!is.na(isfile) & isfile]
+        paths <- paths[!(paths %in% names(.self))]
+        .self$read.more(paths)
+    }
+
+
+    .self$directories$mtime <- mtime
+
+
+    if (any(need2remove))
+        .self$directories <- .self$directories[!need2remove, , drop = FALSE]
+
+
+    invisible()
+},
+
+
+read.more = function (file)
+{
+    x <- read.MusicMetadata(file)
+    keep <- !(names(x) %in% names(.self))
+    if (any(keep))
+        .self$metadata <- rbind(.self$metadata, x$metadata[keep, , drop = FALSE])
     invisible()
 },
 
@@ -375,14 +371,14 @@ validate.playlist = function (file = this.path::here(.. = 1, name), name)
     # .self <- value2 ; file <- this.path::here(.. = 1, "last-added.txt") ; text <- readLines(file, encoding = "UTF-8") ; warning("comment this out later", immediate. = TRUE)
     text <- readLines(file, encoding = "UTF-8")
     table <- paste(
-        .self$value$album.artist,
-        .self$value$album,
+        .self$metadata$album.artist,
+        .self$metadata$album,
         ifelse(
             .self$has.composer(),
-            .self$value$composer,
-            .self$value$artist
+            .self$metadata$composer,
+            .self$metadata$artist
         ),
-        .self$value$title,
+        .self$metadata$title,
         sep = " - "
     )
     i <- match(text, table)
@@ -420,11 +416,11 @@ organize.music = function (dir, folders4singles = FALSE)
 
 
     i <- .self$has.album.artist()
-    to[i] <- file.path(to[i], music.meta::fix.artists(.self$value$album.artist[i]))
+    to[i] <- file.path(to[i], music.meta::fix.artists(.self$metadata$album.artist[i]))
 
 
     i <- i & .self$has.album() & (folders4singles | !.self$is.single())
-    to[i] <- file.path(to[i], music.meta::fix.title(.self$value$album[i]))
+    to[i] <- file.path(to[i], music.meta::fix.title(.self$metadata$album[i]))
 
 
     to <- file.path(to, .self$as.filename(short = TRUE))
@@ -450,6 +446,23 @@ organize.music = function (dir, folders4singles = FALSE)
 
     )
 )
+
+
+MusicMetadataClass <- MusicMetadata$def@className
+
+
+MusicMetadata <- function (metadata = data.frame(), paths = character())
+{
+    paths <- normalizePath(paths, winslash = "/", mustWork = TRUE)
+    mtime <- file.mtime(paths) - 2
+    attr(mtime, "tzone") <- "UTC"
+    methods::new(MusicMetadataClass, metadata = metadata,
+        directories = data.frame(
+            paths = paths,
+            mtime = mtime
+        ))
+}
+
 
 
 # S3 methods       ----
@@ -495,7 +508,7 @@ methods::setMethod("[", "MusicMetadata", function (x, i, j, ..., drop = TRUE)
     if (Narg >= 1L)
         stop("incorrect number of dimensions")
     val <- x$copy()
-    val$value <- val$value[i, , drop = FALSE]
+    val$metadata <- val$metadata[i, , drop = FALSE]
     val
 })
 
@@ -523,12 +536,12 @@ methods::setMethod("as.character", "MusicMetadata", function (x, source = FALSE,
     source <- essentials::as.scalar.logical(source)
     indent <- essentials::as.scalar.integer(indent)
     indentString <- strrep(" ", indent)
-    val <- paste0(indentString, "Title           : ", x$value$title)
+    val <- paste0(indentString, "Title           : ", x$metadata$title)
 
 
-    artists       <- strsplit(x$value$artist      , "/", fixed = TRUE)
-    album.artists <- strsplit(x$value$album.artist, "/", fixed = TRUE)
-    composers     <- strsplit(x$value$composer    , "/", fixed = TRUE)
+    artists       <- strsplit(x$metadata$artist      , "/", fixed = TRUE)
+    album.artists <- strsplit(x$metadata$album.artist, "/", fixed = TRUE)
+    composers     <- strsplit(x$metadata$composer    , "/", fixed = TRUE)
 
 
     artists1       <- vapply(artists      , "[", 1L, FUN.VALUE = "")
@@ -548,7 +561,7 @@ methods::setMethod("as.character", "MusicMetadata", function (x, source = FALSE,
                                                        }, FUN.VALUE = ""))
         ),
         sep = "\n")
-    composers <- strsplit(x$value$composer, "/", fixed = TRUE)
+    composers <- strsplit(x$metadata$composer, "/", fixed = TRUE)
     i <- x$has.composer()
     val[i] <- paste(val[i],
         ifelse(
@@ -562,11 +575,11 @@ methods::setMethod("as.character", "MusicMetadata", function (x, source = FALSE,
 
     i <- x$has.genre()
     val[i] <- paste(val[i],
-        paste0(indentString, "Genre           : ", x$value$genre[i]),
+        paste0(indentString, "Genre           : ", x$metadata$genre[i]),
         sep = "\n")
     i <- !x$is.single()
     val[i] <- paste(val[i],
-        paste0(indentString, "Album           : ", x$value$album[i]),
+        paste0(indentString, "Album           : ", x$metadata$album[i]),
         sep = "\n")
     j <- i & !(album.artists1 == artists1 | as.character(artists) == as.character(album.artists))
     val[j] <- paste(val[j],
@@ -578,22 +591,22 @@ methods::setMethod("as.character", "MusicMetadata", function (x, source = FALSE,
                                                        }, FUN.VALUE = ""))
         ),
         sep = "\n")
-    # j <- i & x$value$track.number != 0L
-    j <- i & !(x$value$track.number == 0 | x$value$track.count == 1)
+    # j <- i & x$metadata$track.number != 0L
+    j <- i & !(x$metadata$track.number == 0 | x$metadata$track.count == 1)
     val[j] <- paste(val[j],
         ifelse(
-            x$value$track.count[j] != 0L,
-            paste0(indentString, "Track           : ", x$value$track.number[j], " of ", x$value$track.count[j]),
-            paste0(indentString, "Track           : ", x$value$track.number[j])
+            x$metadata$track.count[j] != 0L,
+            paste0(indentString, "Track           : ", x$metadata$track.number[j], " of ", x$metadata$track.count[j]),
+            paste0(indentString, "Track           : ", x$metadata$track.number[j])
         ),
         sep = "\n")
-    # j <- i & x$value$disk.count != 1L
-    j <- i & !(x$value$disk.number == 0 | x$value$disk.count == 1)
+    # j <- i & x$metadata$disk.count != 1L
+    j <- i & !(x$metadata$disk.number == 0 | x$metadata$disk.count == 1)
     val[j] <- paste(val[j],
         ifelse(
-            x$value$disk.count[j] != 0L,
-            paste0(indentString, "Disk            : ", x$value$disk.number[j], " of ", x$value$disk.count[j]),
-            paste0(indentString, "Disk            : ", x$value$disk.number[j])
+            x$metadata$disk.count[j] != 0L,
+            paste0(indentString, "Disk            : ", x$metadata$disk.number[j], " of ", x$metadata$disk.count[j]),
+            paste0(indentString, "Disk            : ", x$metadata$disk.number[j])
         ),
         sep = "\n")
     if (source)
@@ -605,7 +618,7 @@ methods::setMethod("as.character", "MusicMetadata", function (x, source = FALSE,
 
 
 methods::setMethod("length", "MusicMetadata", function(x)
-nrow(x$value))
+nrow(x$metadata))
 
 
 methods::setMethod("length<-", c(x = "MusicMetadata"), function (x, value)
@@ -616,20 +629,20 @@ methods::setMethod("length<-", c(x = "MusicMetadata"), function (x, value)
 
 methods::setMethod("lengths", c(x = "MusicMetadata"), function (x, use.names = TRUE)
 {
-    value <- rep(1L, length.out = nrow(x$value))
+    value <- rep(1L, length.out = nrow(x$metadata))
     if (use.names)
-        names(value) <- row.names(x$value)
+        names(value) <- row.names(x$metadata)
     value
 })
 
 
 methods::setMethod("names", "MusicMetadata", function(x)
-row.names(x$value))
+row.names(x$metadata))
 
 
 methods::setMethod("names<-", c("MusicMetadata", "ANY"), function (x, value)
 {
-    row.names(x$value) <- value
+    row.names(x$metadata) <- value
     return(x)
 })
 
@@ -637,7 +650,7 @@ methods::setMethod("names<-", c("MusicMetadata", "ANY"), function (x, value)
 # other misc       ----
 
 
-as.MusicMetadata <- function (x, ...)
+as.MusicMetadata <- function (x = NULL, ...)
 {
     # x <- value2 ; warning("comment this out later")
     # x <- x[order(names(x))]
@@ -715,28 +728,27 @@ as.MusicMetadata <- function (x, ...)
     }, FUN.VALUE = integer(2L))))
 
 
-    music <- as.data.frame(matrix(nrow = length(x), ncol = ncol(x.m4a), dimnames = list(
-        names(x), colnames(x.m4a)
-    )))
-    music[m4a, ] <- x.m4a
-    music[mp3, ] <- x.mp3
-    music$mtime <- exiftoolDate2POSIXct(vapply(x, "[[", "FileModifyDate", FUN.VALUE = "", USE.NAMES = FALSE))
-    music$ctime <- exiftoolDate2POSIXct(vapply(x, "[[", "FileCreateDate", FUN.VALUE = "", USE.NAMES = FALSE))
-    music$atime <- exiftoolDate2POSIXct(vapply(x, "[[", "FileAccessDate", FUN.VALUE = "", USE.NAMES = FALSE))
+    metadata <- x.m4a[rep(NA_integer_, length(x)), , drop = FALSE]
+    row.names(metadata) <- names(x)
+    metadata[m4a, ] <- x.m4a
+    metadata[mp3, ] <- x.mp3
+    metadata$mtime <- exiftoolDate2POSIXct(vapply(x, "[[", "FileModifyDate", FUN.VALUE = "", USE.NAMES = FALSE))
+    metadata$ctime <- exiftoolDate2POSIXct(vapply(x, "[[", "FileCreateDate", FUN.VALUE = "", USE.NAMES = FALSE))
+    metadata$atime <- exiftoolDate2POSIXct(vapply(x, "[[", "FileAccessDate", FUN.VALUE = "", USE.NAMES = FALSE))
 
 
     empty <- cbind(
-        Title          = music$title        == "",
-        Artist         = music$artist       == "",
-        `Track Number` = music$track.number == 0L,
-        `Track Count`  = music$track.count  == 0L,
-        `Disk Number`  = music$disk.number  == 0L,
-        `Disk Count`   = music$disk.count   == 0L,
-        Album          = music$album        == "",
-        `Album Artist` = music$album.artist == "",
-        Date           = music$date         == ""
+        Title          = metadata$title        == "",
+        Artist         = metadata$artist       == "",
+        `Track Number` = metadata$track.number == 0L,
+        `Track Count`  = metadata$track.count  == 0L,
+        `Disk Number`  = metadata$disk.number  == 0L,
+        `Disk Count`   = metadata$disk.count   == 0L,
+        Album          = metadata$album        == "",
+        `Album Artist` = metadata$album.artist == "",
+        Date           = metadata$date         == ""
     )
-    rownames(empty) <- rownames(music)
+    rownames(empty) <- rownames(metadata)
     empty <- empty[apply(empty, 1L, "any"), apply(empty, 2L, "any"), drop = FALSE]
     if (nrow(empty)) {
         dimnames(empty) <- list(
@@ -751,7 +763,7 @@ as.MusicMetadata <- function (x, ...)
     }
 
 
-    return(methods::new(MusicMetadata$def, value = music))
+    MusicMetadata(metadata = metadata)
 }
 
 
