@@ -1,5 +1,8 @@
 exportPattern("^[[:alpha:]]+")
 
 
+importFrom(essentials, mfor)
+
+
 S3method(as.data.frame, MusicMetadata)
 S3method(format, MusicMetadata)

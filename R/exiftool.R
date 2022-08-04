@@ -60,7 +60,7 @@ exiftool <- function (...)
 }
 
 
-read.MusicMetadata <- function (file)
+read.MusicMetadata <- function (file, check = "warn")
 {
     file <- path.expand(file)
     if (length(file) == 1 &&
@@ -74,9 +74,10 @@ read.MusicMetadata <- function (file)
     x <- exiftool(
         "-charset"  , "FileName=UTF-8",
         "-short"    ,         # short output format
-        "-tab"      ,         # output in tab-delimited list format,
+        "-tab"      ,         # output in tab-delimited list format
         "-extension", "m4a",  # process files with m4a extension
         "-extension", "mp3",  # process files with mp3 extension
+        "-recurse"  ,         # recursively process subdirectories
 
 
         # include -- before the files so that files which
@@ -85,19 +86,31 @@ read.MusicMetadata <- function (file)
     )
 
 
-    # if 0 files are found
-    if (identical(x, structure(character(), status = 1L)))
-        return(as.MusicMetadata())
-
-
     # if the last element is:
     # "n directories scanned"
     # "n image files read",
     # "n files could not be read"
     # remove them from 'value'
-    while (grepl("^[[:blank:]]*[[:digit:]]+ (director(y|ies) scanned|image files? read|files? could not be read)[[:blank:]]*$", x[length(x)])) {
-        x <- x[-length(x)]
+    repeat {
+        n <- length(x)
+        if (n <= 0L)
+            break
+        if (grepl("^[[:blank:]]*[[:digit:]]+ (director(y|ies) scanned|image files? read)[[:blank:]]*$", x[[n]])) {
+            x <- x[-n]
+        } else if (grepl("^[[:blank:]]*[[:digit:]]+ (files? could not be read)[[:blank:]]*$", x[[n]])) {
+            msg <- gsub("^[[:blank:]]+|[[:blank:]]+$", "", x[[n]])
+            if (identical(check, "stop"))
+                stop(msg, domain = NA)
+            else if (identical(check, "warn"))
+                warning(msg, immediate. = TRUE, noBreaks. = TRUE, domain = NA)
+            x <- x[-n]
+        } else break
     }
+
+
+    # if 0 files are found
+    if (n <= 0L)
+        return(as.MusicMetadata())
 
 
     # when multiple files are found, they are listed like:

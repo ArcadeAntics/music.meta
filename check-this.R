@@ -1,5 +1,5 @@
 essentials:::check_this(  # music.meta
-    build = TRUE,
+    special = TRUE,
 
     check = FALSE,
 
